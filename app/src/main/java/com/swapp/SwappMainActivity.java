@@ -13,6 +13,8 @@ import android.widget.ImageView;
 
 import com.swapp.Librerias.Notificaciones.BarNotificaciones;
 import com.swapp.Librerias.Web.HttpClient;
+import com.swapp.Librerias.Web.MyWebChromeClient;
+import com.swapp.Librerias.Web.MyWebViewClient;
 import com.swapp.Librerias.Web.OnHttpRequestComplete;
 import com.swapp.Librerias.Web.Response;
 import com.swapp.Metodos.AndroidToJavaScript;
@@ -52,14 +54,17 @@ public class SwappMainActivity extends AppCompatActivity {
         getSupportActionBar().hide();
 
         url_back = new ArrayList();
-        url_back.add(ServerConfig.URL_SERVER_LOCAL);
+        url_back.add(ServerConfig.URL_SERVER);
 
         cerrar = false;
 
         notificacion = new BarNotificaciones(this);
 
         web = (WebView) findViewById(R.id.web);
+
+        web.setWebViewClient(new MyWebViewClient());
         web.setWebChromeClient(new WebChromeClient());
+
         web.getSettings().setJavaScriptEnabled(true);
 
         web.setDownloadListener(new DownloadListener() {
@@ -71,7 +76,8 @@ public class SwappMainActivity extends AppCompatActivity {
 
         //web.clearCache(true);
 
-        web.loadUrl(ServerConfig.URL_SERVER_LOCAL);
+
+
         web.addJavascriptInterface(new JavaScriptToAndroid(this), "SWAPP");
 
         notificacion = new BarNotificaciones(this);
@@ -81,9 +87,12 @@ public class SwappMainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                web.clearCache(true);
-                web.loadUrl(ServerConfig.URL_SERVER_LOCAL);
+                //web.clearCache(true);
+                //web.loadUrl(ServerConfig.URL_SERVER);
 
+                web.reload();
+
+                /*
                 notificacion.triggerNotification(
                     "Titulo de prueba "+noti,
                     "Mensaje de prueba "+noti,
@@ -92,9 +101,18 @@ public class SwappMainActivity extends AppCompatActivity {
                         R.drawable.actualizar
                     )
                 );
+                */
 
                 noti++;
 
+            }
+        });
+
+        runOnUiThread(new Runnable() {
+
+            @Override
+            public void run() {
+                web.loadUrl(ServerConfig.URL_SERVER);
             }
         });
 
@@ -133,10 +151,22 @@ public class SwappMainActivity extends AppCompatActivity {
             if (!web.getUrl().equalsIgnoreCase(ServerConfig.URL_SERVER)) {
                 int index = url_back.size() - 1;
                 if( index < 0 ){ index = 0; }
-                url_back.remove(index);
-                index = url_back.size() - 1;
-                if( index < 0 ){ index = 0; }
-                web.loadUrl(url_back.get(index).toString());
+
+                if(url_back.size() > 0){
+
+                    url_back.remove(index);
+                    index = url_back.size() - 1;
+                    if( index < 0 ){ index = 0; }
+                    if(url_back.size() > 0){
+                        web.loadUrl(url_back.get(index).toString());
+                    }else{
+                        web.loadUrl(ServerConfig.URL_SERVER);
+                    }
+
+                }else{
+                    web.loadUrl(ServerConfig.URL_SERVER);
+                }
+
             } else {
                 AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
                 alertDialog.setMessage("¿Desea salir de la aplicación?");
